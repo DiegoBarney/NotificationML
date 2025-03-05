@@ -71,4 +71,4 @@ Serviços AWS que serão utilizados:
 
 Desenho do Fluxo de Arquitetura:
 
-    ![alt text](https://github.com/DiegoBarney/NotificationML/blob/feature/notification/Diagrama-NotificationML.png)
+    ![alt text](https://github.com/DiegoBarney/NotificationML/blob/feature/notification/Diagrama-NotificationML.png?raw=true)
