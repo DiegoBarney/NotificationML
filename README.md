@@ -1,14 +1,14 @@
 # NotificationML
 Notification solution
 
-Detalhamento de Arquitetura 
+Detalhamento de Arquitetura:
 
 1- Aplicativo mobile: o aplicativo mobile vai receber as notifications baseado nas preferencias
 do usuario.
 
-2- Sistema Backend: O back-end vai conter toda a logica de negocio, para enviar as notificações, receber preferencias do usuario, cadastrar FCM/APNS no servico SNS e também fazer o controle de opt-out requests.
+2- Sistema Backend (AWS): O back-end vai conter toda a logica de negocio, para enviar as notificações, receber preferencias do usuario, cadastrar FCM/APNS no servico SNS e também fazer o controle de opt-out requests.
 
-3- Serviço de Notificação: serviço responsavel pela entrega de notificações para APNS/FCM, WEB, SMS e e-mail.
+3- Serviço de Notificação (AWS): serviço responsavel pela entrega de notificações para os destinos APNS/FCM, SMS e E-mail.
 
 
 Serviços AWS que serão utilizados:
@@ -51,17 +51,17 @@ Serviços AWS que serão utilizados:
 
         Criar Topico e Endpoint para cada dispositivo cadastrado
 
-        motivo: SNS é um serviço de menssageria totalmente gerenciavel que suporta multiplos canais de notificações e altamente escalavel;
+        motivo: SNS é um serviço de menssageria totalmente gerenciavel que suporta multiplos canais de notificações e altamente escalavel (podendo suportar futuramente e-mail e SMS);
 
     6- Amazon DynamoDB:
         Proposito: Salvar preferencias de usuario, endpoints SNS e opt-out status;
 
-        motivo: Serviço nao relacional, banco de dados que providencia baixa latencia e escalavel.
+        motivo: Serviço nao relacional (caso mude o payload), banco de dados que providencia baixa latencia e escalabilidade.
 
     7- SQS (Simple Queue Service):
         Proposito: enfileirar as notificações e garantir que serão processadas o quanto antes e que pode existir retentativas em caso de falha.
 
-        motivo: SQS ajuda no desacoplamento e escalabilidade de microserviços, serviços distribuidos e aplicações serverless.
+        motivo: SQS ajuda no desacoplamento entre serviços e tem escalabilidade.
 
     8- Amazon CloudWatch:
         Proposito: monitorar a performance e saude dos serviços
@@ -69,5 +69,6 @@ Serviços AWS que serão utilizados:
         Motivo: cloudwatch providencia monitoramento e observabilidade para os recursos AWS.
 
 
-Fluxo de Arquitetura:
-    Desenho anexado no repositorio: https://github.com/DiegoBarney/NotificationML/blob/feature/notification/Diagrama-NotificationML.png
+Desenho do Fluxo de Arquitetura:
+
+    ![alt text](https://github.com/DiegoBarney/NotificationML/blob/feature/notification/Diagrama-NotificationML.png)
