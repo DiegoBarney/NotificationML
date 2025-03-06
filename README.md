@@ -1,19 +1,19 @@
 # NotificationML
 Notification solution
 
-Detalhamento de Arquitetura:
+Fluxo do Sistema:
 
 1- Aplicativo mobile: o aplicativo mobile vai receber as notifications baseado nas preferencias
 do usuario.
 
-2- Sistema Backend (AWS): O back-end vai conter toda a logica de negocio, para enviar as notificações, receber preferencias do usuario, cadastrar FCM/APNS no servico SNS e também fazer o controle de opt-out requests.
+2- Sistema Backend (AWS): O back-end vai conter toda a logica de negocio, para enviar as notificações, receber preferencias do usuario, cadastrar FCM/APNS/ no servico SNS e também fazer o controle de opt-out requests.
 
-3- Serviço de Notificação (AWS): serviço responsavel pela entrega de notificações para os destinos APNS/FCM, SMS e E-mail.
+3- Serviço de Notificação (AWS): serviço responsavel pela entrega de notificações para os destinos APNS/FCM, Lambdas, SMS e E-mail.
 
 
 Serviços AWS que serão utilizados:
 
-    1- Amazon API Gateway (Futuro):
+    1- Amazon API Gateway Rest API (Futuro):
         Proposito: Expor um ponto de acesso Rest API, para o aplicativo mobile e outros serviços enviarem preferencias de usuario, token registrado (ex: FCM (Firebase cloud messaging) para android ou APNS (Apple Push Notification Service) para IOS) e status de opt-out para o sistema back-and.
 
         exemplo de payload:
@@ -29,17 +29,17 @@ Serviços AWS que serão utilizados:
                 }
             }
 
-        motivo: providencia escalabilidade e segurança para gerenciamento de APIs;
+        motivo: foi separada uma API Rest para aplicativos mobiles, pois a API Rest não mantem uma conexão ativa, poupando mais bateria, dados moveis e outros recursos mobile. API Rest também providencia escalabilidade e segurança para gerenciamento de APIs;
 
 
-    2- Amazon API Gateway - WEB SOCKET:
+    2- Amazon API Gateway Web Socket:
         Proposito: Expor uma conexão persistente bidirecional para os front-ends receberem notificações em tempo real
 
-        Rotas e Lambdas WEB SOCKET: 
+        Rotas e Lambdas Web Socket: 
             Connect -> Lambda Function -> ConnectHandler (Salva o ClientID conectado no DynamoDB)
             Disconnect -> Lambda Function -> DisconnectHandler (Remove o ClientID Conectado no DynamoDB)
             SendMessage -> Lambda Function -> NotificationHandler (Trata Notificações do SNS)
-            SetUserData -> Lambda Function -> SetUserPreferences (Salva preferencias do usuario no DynamoDB)
+            SetUserData -> Lambda Function -> SetUserPreferences (Salva dados e preferencias do usuario no DynamoDB)
 
         exemplo de payload:
             {
@@ -54,41 +54,46 @@ Serviços AWS que serão utilizados:
                 }
             }
 
-        motivo: providencia escalabilidade e segurança para gerenciamento de APIs;
+        motivo: para aplicativos web, foi pensando em um websocket, para receber mensagens em tempo real, providencia escalabilidade e mensagens em tempo real;
 
-    2- AWS Lambda 1 (Futuro): 
+    3- AWS Lambda 1 (Futuro): 
         proposito: receber e salvar em banco de dados os seguintes dados do usuario: preferencias do usuario, Endpoint cadastrado pelo Tokens FCM/APNS no serviço SNS e status de opt-out.
 
         motivo: serviço serverless, escalavel e com um custo efetivo;
 
-    3- AWS Lambda 2: 
+    4- AWS Lambda 2: 
         Proposito: recuperar e gerenciar preferencias de usuarios/ Tokens-endpoints / ClientID /opt-out e enviar para o serviço SQS caso opt-out = true;
 
         motivo: serviço serverless, escalavel e com um custo efetivo;
 
-    4- AWS Lambda 3: 
+    5- AWS Lambda 3: 
         Proposito: Recuperar mensagem do serviço SQS e enviar para o serviço SNS no endpoint cadastrado pelo dispositivo em caso de mensagem individual ou enviar para o topico em caso de mensagem coletiva;
 
         motivo: serviço serverless, escalavel e com um custo efetivo;
 
-    5- Amazon SNS (Simple Notification Service):
+    6- Event Bridge:
+        Proposito: Agendamento de trigger, para agendar o trigger lambda de notificações
+
+        motivo: pode ser configurado de varias maneiras, como timer, alarms e etc.
+
+    7- Amazon SNS (Simple Notification Service):
         Proposito: Enviar notificações para aplicações, SMS e e-mail;
 
         Criar Topico e Endpoint para cada dispositivo cadastrado
 
         motivo: SNS é um serviço de menssageria totalmente gerenciavel que suporta multiplos canais de notificações e altamente escalavel (podendo suportar futuramente e-mail e SMS);
 
-    6- Amazon DynamoDB:
+    8- Amazon DynamoDB:
         Proposito: Salvar preferencias de usuario, endpoints SNS e opt-out status;
 
         motivo: Serviço nao relacional (caso mude o payload), banco de dados que providencia baixa latencia e escalabilidade.
 
-    7- SQS (Simple Queue Service):
+    9- SQS (Simple Queue Service):
         Proposito: enfileirar as notificações e garantir que serão processadas o quanto antes e que pode existir retentativas em caso de falha.
 
         motivo: SQS ajuda no desacoplamento entre serviços e tem escalabilidade.
 
-    8- Amazon CloudWatch:
+    10- Amazon CloudWatch:
         Proposito: monitorar a performance e saude dos serviços
 
         Motivo: cloudwatch providencia monitoramento e observabilidade para os recursos AWS.
