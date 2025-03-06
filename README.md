@@ -13,7 +13,7 @@ do usuario.
 
 Serviços AWS que serão utilizados:
 
-    1- Amazon API Gateway:
+    1- Amazon API Gateway (Futuro):
         Proposito: Expor um ponto de acesso Rest API, para o aplicativo mobile e outros serviços enviarem preferencias de usuario, token registrado (ex: FCM (Firebase cloud messaging) para android ou APNS (Apple Push Notification Service) para IOS) e status de opt-out para o sistema back-and.
 
         exemplo de payload:
@@ -31,13 +31,38 @@ Serviços AWS que serão utilizados:
 
         motivo: providencia escalabilidade e segurança para gerenciamento de APIs;
 
-    2- AWS Lambda 1: 
+
+    2- Amazon API Gateway - WEB SOCKET:
+        Proposito: Expor uma conexão persistente bidirecional para os front-ends receberem notificações em tempo real
+
+        Rotas e Lambdas WEB SOCKET: 
+            Connect -> Lambda Function -> ConnectHandler (Salva o ClientID conectado no DynamoDB)
+            Disconnect -> Lambda Function -> DisconnectHandler (Remove o ClientID Conectado no DynamoDB)
+            SendMessage -> Lambda Function -> NotificationHandler (Trata Notificações do SNS)
+            SetUserData -> Lambda Function -> SetUserPreferences (Salva preferencias do usuario no DynamoDB)
+
+        exemplo de payload:
+            {
+                "user":{
+                    "User-ID":[ "user-ID-1",
+                                "user-ID-2"
+                    ],
+                    "user-data": {
+                        .......
+                    },
+                    "opt-out": "true"
+                }
+            }
+
+        motivo: providencia escalabilidade e segurança para gerenciamento de APIs;
+
+    2- AWS Lambda 1 (Futuro): 
         proposito: receber e salvar em banco de dados os seguintes dados do usuario: preferencias do usuario, Endpoint cadastrado pelo Tokens FCM/APNS no serviço SNS e status de opt-out.
 
         motivo: serviço serverless, escalavel e com um custo efetivo;
 
     3- AWS Lambda 2: 
-        Proposito: recuperar e gerenciar preferencias de usuarios/ endpoints /opt-out e enviar para o serviço SQS caso opt-out = true;
+        Proposito: recuperar e gerenciar preferencias de usuarios/ Tokens-endpoints / ClientID /opt-out e enviar para o serviço SQS caso opt-out = true;
 
         motivo: serviço serverless, escalavel e com um custo efetivo;
 
